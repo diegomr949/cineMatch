@@ -1,6 +1,3 @@
-// ==========================================
-// 1. CONFIGURACIÓN & ESTADO
-// ==========================================
 const API_KEY = 'b9c94cfccf365991a80b85f96b025719';
 const BASE_URL = 'https://api.themoviedb.org/3';
 const IMG_URL = 'https://image.tmdb.org/t/p/w500';
@@ -8,7 +5,6 @@ const videoModal = document.getElementById('video-modal');
 const videoContainer = document.getElementById('video-container');
 const closeVideoBtn = document.getElementById('close-video-btn');
 
-// --- LISTA FIJA DE GÉNEROS (Infalible) ---
 const GENRES = [
     { id: 28, name: "Acción" },
     { id: 12, name: "Aventura" },
@@ -28,21 +24,15 @@ const GENRES = [
     { id: 53, name: "Suspenso" }
 ];
 
-// Variables de Estado
 let movies = []; 
 let currentIndex = 0; 
 let currentPage = 1; 
 let isLoading = false; 
 
-// Carga de datos persistentes
 let watchlist = JSON.parse(localStorage.getItem('cinematch_watchlist')) || [];
 let selectedGenres = JSON.parse(localStorage.getItem('cinematch_genres')) || [];
-// NUEVO: Lista de películas ya vistas (Like o Dislike)
 let seenMovies = JSON.parse(localStorage.getItem('cinematch_seen')) || [];
 
-// ==========================================
-// 2. REFERENCIAS DEL DOM
-// ==========================================
 const cardContainer = document.getElementById('card-container');
 const likeBtn = document.getElementById('like-btn');
 const dislikeBtn = document.getElementById('dislike-btn');
@@ -57,9 +47,6 @@ const saveGenresBtn = document.getElementById('save-genres-btn');
 const configBtn = document.getElementById('config-btn');
 const toast = document.getElementById('toast');
 
-// ==========================================
-// 3. INICIALIZACIÓN
-// ==========================================
 async function initApp() {
     renderGenres(); 
 
@@ -70,9 +57,6 @@ async function initApp() {
     }
 }
 
-// ==========================================
-// 4. LÓGICA DE GÉNEROS
-// ==========================================
 function renderGenres() {
     genresGrid.innerHTML = '';
     
@@ -106,7 +90,6 @@ saveGenresBtn.addEventListener('click', () => {
     localStorage.setItem('cinematch_genres', JSON.stringify(selectedGenres));
     genresModal.classList.remove('active');
     
-    // Al cambiar filtros, reseteamos la vista actual, pero NO el historial de vistos
     resetAndFetch();
 });
 
@@ -115,18 +98,12 @@ configBtn.addEventListener('click', () => {
     genresModal.classList.add('active');
 });
 
-// ==========================================
-// 5. FETCH INTELIGENTE (FILTRO DE VISTOS)
-// ==========================================
 async function fetchMovies() {
     if (isLoading) return;
     isLoading = true;
 
     try {
-        // Bucle para asegurar que encontramos películas NO vistas
         let foundNewMovies = false;
-        
-        // Intentamos hasta encontrar pelis o hasta un límite de seguridad (ej. 5 páginas)
         let attempts = 0; 
 
         while (!foundNewMovies && attempts < 5) {
@@ -141,33 +118,27 @@ async function fetchMovies() {
             const response = await fetch(url);
             const data = await response.json();
             
-            // Si se acabó la API
             if (!data.results || data.results.length === 0) {
-                break; // Salimos del bucle
+                break;
             }
 
-            // FILTRO CLAVE: Quitamos las que no tienen foto Y las que ya están en seenMovies
             const unseenMovies = data.results.filter(movie => {
                 const hasPoster = movie.poster_path !== null;
-                const notSeen = !seenMovies.includes(movie.id); // Verifica si el ID ya existe
+                const notSeen = !seenMovies.includes(movie.id); 
                 return hasPoster && notSeen;
             });
 
             if (unseenMovies.length > 0) {
-                // Encontramos pelis nuevas, las agregamos y cortamos el bucle
                 movies = movies.concat(unseenMovies);
                 foundNewMovies = true;
             } else {
-                // Si todas las de esta página ya las vi, pasamos a la siguiente página automáticamente
                 console.log(`Página ${currentPage} completada, buscando en la siguiente...`);
             }
 
-            // Preparamos la siguiente página para la próxima vuelta o próxima llamada
             currentPage++;
             attempts++;
         }
 
-        // Renderizamos si es necesario
         if (currentIndex === 0 && movies.length > 0) {
             renderCard();
         } else if (movies.length === 0 && currentPage > 1) {
@@ -196,7 +167,6 @@ function resetAndFetch() {
     fetchMovies();
 }
 
-// Función auxiliar para reiniciar el historial (Opcional, por si se quedan sin pelis)
 window.resetSeenMovies = () => {
     seenMovies = [];
     localStorage.removeItem('cinematch_seen');
@@ -204,11 +174,7 @@ window.resetSeenMovies = () => {
     resetAndFetch();
 }
 
-// ==========================================
-// 6. RENDERIZADO
-// ==========================================
 function renderCard() {
-    // Si nos quedan pocas, buscamos más preventivamente
     if (movies.length - currentIndex < 4) {
         fetchMovies();
     }
@@ -228,6 +194,9 @@ function renderCard() {
             <div class="movie-info">
                 <h2>${movie.title}</h2>
                 <p>⭐ ${movie.vote_average.toFixed(1)} | 📅 ${date}</p>
+                <button class="trailer-btn" onclick="showTrailer(${movie.id})">
+                    <i class="fas fa-play"></i> Ver Trailer
+                </button>
                 <p class="overview">${movie.overview || 'Sin descripción.'}</p>
             </div>
         </div>
@@ -235,11 +204,6 @@ function renderCard() {
     cardContainer.innerHTML = cardHTML;
 }
 
-// ==========================================
-// 7. INTERACCIONES (MARCAR COMO VISTO)
-// ==========================================
-
-// Función Helper para guardar en historial
 function markAsSeen(id) {
     if (!seenMovies.includes(id)) {
         seenMovies.push(id);
@@ -254,7 +218,6 @@ function handleLike() {
 
     const movie = movies[currentIndex];
     
-    // 1. Guardar en Watchlist
     if (!watchlist.some(m => m.id === movie.id)) {
         watchlist.push(movie);
         localStorage.setItem('cinematch_watchlist', JSON.stringify(watchlist));
@@ -263,7 +226,6 @@ function handleLike() {
         showToast("Ya estaba en tu lista 😉");
     }
 
-    // 2. Marcar como VISTA para que no vuelva a salir
     markAsSeen(movie.id);
 
     setTimeout(() => { currentIndex++; renderCard(); }, 300);
@@ -276,7 +238,6 @@ function handleDislike() {
 
     const movie = movies[currentIndex];
     
-    // Marcar como VISTA para que no vuelva a salir
     markAsSeen(movie.id);
 
     setTimeout(() => { currentIndex++; renderCard(); }, 300);
@@ -288,9 +249,6 @@ function showToast(message) {
     setTimeout(() => toast.classList.remove('show'), 2500);
 }
 
-// ==========================================
-// 8. SIDEBAR
-// ==========================================
 function renderWatchlist() {
     watchlistUl.innerHTML = '';
     if (watchlist.length === 0) {
@@ -316,7 +274,6 @@ window.removeMovie = (id) => {
     showToast("Película eliminada 🗑️");
 };
 
-// Event Listeners
 likeBtn.addEventListener('click', handleLike);
 dislikeBtn.addEventListener('click', handleDislike);
 showWatchlistBtn.addEventListener('click', () => { renderWatchlist(); sidebar.classList.add('open'); backdrop.classList.add('active'); });
@@ -327,27 +284,22 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'ArrowRight') handleLike();
 });
 
-// Inicio
 initApp();
 
-// Función para buscar y mostrar trailer
 async function showTrailer(movieId) {
     try {
-        // Endpoint para videos
-        const url = `${BASE_URL}/movie/${movieId}/videos?api_key=${API_KEY}&language=es-ES`; // Intenta español primero
+        const url = `${BASE_URL}/movie/${movieId}/videos?api_key=${API_KEY}&language=es-ES`; 
         let response = await fetch(url);
         let data = await response.json();
 
-        // Si no hay en español, busca en inglés (fallback)
         if (data.results.length === 0) {
             const urlEn = `${BASE_URL}/movie/${movieId}/videos?api_key=${API_KEY}&language=en-US`;
             response = await fetch(urlEn);
             data = await response.json();
         }
 
-        // Buscamos el que sea type="Trailer" y site="YouTube"
         const trailer = data.results.find(vid => vid.type === "Trailer" && vid.site === "YouTube") 
-                        || data.results[0]; // O el primero que encuentre
+                        || data.results[0]; 
 
         if (trailer) {
             const embedUrl = `https://www.youtube.com/embed/${trailer.key}?autoplay=1`;
@@ -363,13 +315,11 @@ async function showTrailer(movieId) {
     }
 }
 
-// Cerrar video
 closeVideoBtn.addEventListener('click', () => {
     videoModal.classList.remove('active');
-    videoContainer.innerHTML = ''; // Limpiar para detener sonido
+    videoContainer.innerHTML = ''; 
 });
 
-// Cerrar al clickear fuera
 videoModal.addEventListener('click', (e) => {
     if(e.target === videoModal) {
         videoModal.classList.remove('active');
