@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>CineMatch 🎬</title>
+    <link rel="stylesheet" href="style.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+</head>
+<body>
+
+    <header>
+        <div class="header-left">
+            <h1>CineMatch</h1>
+            <button id="config-btn" class="icon-btn" title="Cambiar Géneros">
+                <i class="fas fa-cog"></i>
+            </button>
+        </div>
+        <button id="show-watchlist-btn">
+            <i class="fas fa-list"></i> Mis Likes
+        </button>
+    </header>
+
+    <main id="card-container">
+        </main>
+
+    <div class="actions">
+        <button id="dislike-btn" class="btn-circle dislike">
+            <i class="fas fa-times"></i>
+        </button>
+        <button id="like-btn" class="btn-circle like">
+            <i class="fas fa-heart"></i>
+        </button>
+    </div>
+
+    <div id="overlay-backdrop" class="overlay-backdrop"></div>
+    
+    <aside id="watchlist-sidebar" class="sidebar">
+        <div class="sidebar-header">
+            <h2>Para Ver 🍿</h2>
+            <button id="close-sidebar">&times;</button>
+        </div>
+        <ul id="watchlist-ul">
+            </ul>
+    </aside>
+
+    <div id="toast" class="toast">Notificación</div>
+
+    <div id="genres-modal" class="modal-overlay">
+        <div class="modal-content">
+            <h2>¿Qué te gusta ver? 🍿</h2>
+            <p>Selecciona tus géneros favoritos para personalizar tu búsqueda.</p>
+            
+            <div id="genres-grid" class="genres-grid">
+                </div>
+
+            <button id="save-genres-btn" class="primary-btn">¡A Buscar!</button>
+        </div>
+    </div>
+    <div id="video-modal" class="modal-overlay">
+    <div class="modal-content video-content">
+        <button id="close-video-btn" class="close-video">&times;</button>
+        <div id="video-container"></div>
+    </div>
+</div>
+
+    <script src="app.js"></script>
+</body>
+</html>
